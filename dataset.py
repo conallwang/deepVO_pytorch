@@ -11,8 +11,8 @@ class DeepVODataset(Dataset):
     def __init__(self, seq=2, interval=1, phase='train'):
         super().__init__()
 
-        self.seq = 2
-        self.interval = 1
+        self.seq = seq
+        self.interval = interval
         self.phase = phase
 
         self.img_list, self.start_idx, self.poses = self.load_data()
@@ -25,7 +25,7 @@ class DeepVODataset(Dataset):
 
         if self.phase == 'train':
             # choose sequence 00, 02, 08, 09
-            for i in [0, 2, 8, 9]:
+            for i in train_seq:
                 # get relative poses
                 pose = np.loadtxt(f'{poses_path}/{i:02}_rp.txt')
                 pose = np.concatenate((pose, -100 * np.ones((1, 6))), axis=0)
@@ -37,16 +37,27 @@ class DeepVODataset(Dataset):
                 img_path.sort()
 
                 img_list.extend(img_path)
-                l = -self.seq
                 for j in range(len(img_path)):
-                    if j <= len(img_path) - self.seq and j - l >= self.seq:
+                    if j <= len(img_path) - self.seq and j % self.seq == 0:
                         start_idx.append(count)
-                        l = j
                     count += 1
         else:
-            # choose sequence 03, 04, 05, 06, 07, 10
-            for i in [3, 4, 5, 6, 7, 10]:
-                pass
+            for i in vaild_seq:
+                # get relative poses
+                pose = np.loadtxt(f'{poses_path}/{i:02}_rp.txt')
+                pose = np.concatenate((pose, -100 * np.ones((1, 6))), axis=0)
+
+                poses.append(pose)
+
+                # get all image name in special sequence
+                img_path = glob(f'{dataset_path}/{i:02}/image_2/*.png')
+                img_path.sort()
+
+                img_list.extend(img_path)
+                for j in range(len(img_path)):
+                    if j <= len(img_path) - self.seq and j % self.seq == 0:
+                        start_idx.append(count)
+                    count += 1
         
         res = poses[0]
         for i in range(1, len(poses)):

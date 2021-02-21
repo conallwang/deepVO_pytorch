@@ -37,7 +37,7 @@ class DeepVO(nn.Module):
         self.conv4_1 = conv(self.batch_norm, 512, 512, 3, 1)
         self.conv5 = conv(self.batch_norm, 512, 512, 3, 2)
         self.conv5_1 = conv(self.batch_norm, 512, 512, 3, 1)
-        self.conv6 = nn.Conv2d(512, 1024, 3, 2)
+        self.conv6 = conv(self.batch_norm, 512, 1024, 3, 2)
 
         self.lstm = nn.LSTM(input_size=1024*20*6, hidden_size=1000, num_layers=2, batch_first=True)
 
@@ -61,7 +61,7 @@ class DeepVO(nn.Module):
 
         x, _ = self.lstm(x)
 
-        x = x.view(-1, 1024)
+        x = x.reshape(-1, 1000)
         x = self.fc1(x)
         x = self.fc2(x)
 
